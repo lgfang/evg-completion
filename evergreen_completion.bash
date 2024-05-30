@@ -68,6 +68,7 @@ function __comp_evergreen () {
                 options=("fetch" "--task_id" "--execution")
                 ;;
             patch) _comp_evg_patch ;;
+            patch-set-module) _comp_evg_module ;;
             fetch) _comp_evg_fetch ;;
         esac
 
@@ -91,7 +92,7 @@ function _comp_evg_patch () {
 
     case "$prev" in
         "--project")
-            options=($(evergreen list --projects | while read -r line; do echo ${line%% *};done))
+            options=$(evergreen list --projects | fzf | awk '{print $1}')
             ;;
         "--variants")
             # TODO: List variants if projects is already specified, otherwise empty completion list.
@@ -134,6 +135,18 @@ function _comp_evg_patch () {
         esac
     esac
 
+}
+
+function _comp_evg_module () {
+    case "$prev" in
+        "--patch"|"-i")
+            options=$(evergreen list-patches -n 10 |
+                          awk -v RS='' -v FS='( : |\n)' '{print $2" | "$4" | "$6" | "$8}' | \
+                              fzf | cut -d' ' -f 1)
+            ;;
+        *)
+        ;;
+    esac
 }
 
 function _comp_evg_fetch () {
