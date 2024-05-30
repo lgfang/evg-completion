@@ -144,7 +144,19 @@ function _comp_evg_module () {
                           awk -v RS='' -v FS='( : |\n)' '{print $2" | "$4" | "$6" | "$8}' | \
                               fzf | cut -d' ' -f 1)
             ;;
+        "--module"|"-m")
+            options=$(basename "$(git remote get-url origin)" ".git")
+            ;;
         *)
+            case "$cur" in
+                *)
+                    options=(
+                        "--patch"
+                        "--module"
+                        )
+                ;;
+        esac
+
         ;;
     esac
 }
