@@ -140,7 +140,7 @@ function _comp_evg_patch () {
 function _comp_evg_module () {
     case "$prev" in
         "--patch"|"-i")
-            options=$(evergreen list-patches -n 10 |
+            options=$(evergreen list-patches -n 30 |
                           awk -v RS='' -v FS='( : |\n)' '{print $2" | "$4" | "$6" | "$8}' | \
                               fzf | cut -d' ' -f 1)
             ;;
