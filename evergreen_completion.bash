@@ -142,7 +142,7 @@ function _comp_evg_module () {
         "--patch"|"-i")
             options=$(evergreen list-patches -n 30 |
                           awk -v RS='' -v FS='( : |\n)' '{print $2" | "$4" | "$6" | "$8}' | \
-                              fzf | cut -d' ' -f 1)
+                              grep -v "pull request" | fzf | cut -d' ' -f 1)
             ;;
         "--module"|"-m")
             options=$(basename "$(git remote get-url origin)" ".git")
