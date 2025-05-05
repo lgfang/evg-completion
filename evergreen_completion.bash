@@ -1,6 +1,7 @@
+# -*-mode:org; coding:utf-8; time-stamp-pattern:"8/# Modified:[ \t]+%U %Y-%02m-%02d %5z$" -*-
 # \file Name: evergreen_compeletion.bash
-# Created:  Lungang Fang 2023-06-23
-# Modified: Lungang Fang 2023-07-03T16:23:00+1000>
+# Created:  Fang Lungang 2023-06-23
+# Modified: Fang Lungang 2025-05-05 +1000
 
 # \brief
 
@@ -19,168 +20,171 @@
 # Had you not received a copy of the GNU General Public License yet, write
 # to the Free Software Foundation, 675 Mass Ave, Cambridge, MA 02139, USA.
 
-function __comp_evergreen () {
-    local i=1 cur prev command options
+function __comp_evergreen() {
+  local i=1 cur prev command options
 
-    COMPREPLY=()
-    command=${COMP_WORDS[1]}
-    prev=${COMP_WORDS[COMP_CWORD-1]}
-    cur=${COMP_WORDS[COMP_CWORD]}
+  COMPREPLY=()
+  command=${COMP_WORDS[1]}
+  prev=${COMP_WORDS[COMP_CWORD - 1]}
+  cur=${COMP_WORDS[COMP_CWORD]}
 
-    commands=(
-        "admin"
-        "agent"
-        "buildlogger"
-        "cancel-patch"
-        "client"
-        "commit-queue"
-        "create-version"
-        "evaluate"
-        "fetch"
-        "finalize-patch"
-        "get-update"
-        "help"
-        "host"
-        "keys"
-        "last-green"
-        "list"
-        "list-patches"
-        "notify"
-        "patch"
-        "patch-file"
-        "patch-remove-module"
-        "patch-set-module"
-        "pull"
-        "scheduler"
-        "service"
-        "subscriptions"
-        "validate"
-        "version"
-        "volume"
-    )
+  commands=(
+    "admin"
+    "agent"
+    "buildlogger"
+    "cancel-patch"
+    "client"
+    "commit-queue"
+    "create-version"
+    "evaluate"
+    "fetch"
+    "finalize-patch"
+    "get-update"
+    "help"
+    "host"
+    "keys"
+    "last-green"
+    "list"
+    "list-patches"
+    "notify"
+    "patch"
+    "patch-file"
+    "patch-remove-module"
+    "patch-set-module"
+    "pull"
+    "scheduler"
+    "service"
+    "subscriptions"
+    "validate"
+    "version"
+    "volume"
+  )
 
-    if [[ "$COMP_CWORD" -eq 1 ]]; then
-        # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "${commands[*]}" -- "$cur"))
-    else
-        case "$command" in
-            buildlogger)
-                options=("fetch" "--task_id" "--execution")
-                ;;
-            patch) _comp_evg_patch ;;
-            patch-set-module) _comp_evg_module ;;
-            fetch) _comp_evg_fetch ;;
-        esac
-
-        # Assuming no command/sub-command/options will be used more than once in
-        # the command line, delete the ones have already entered from the
-        # completion list.
-        for each in "${COMP_WORDS[@]}"; do
-            for i in "${!options[@]}"; do
-                if [[ "$each" == "${options[i]}" ]]; then
-                    unset "options[i]"
-                fi
-            done
-        done
-
-        # shellcheck disable=SC2207
-        COMPREPLY=($(compgen -W "${options[*]}" -- "$cur"))
-    fi
-}
-
-function _comp_evg_patch () {
-
-    case "$prev" in
-        "--project")
-            options=$(evergreen list --projects | fzf | awk '{print $1}')
-            ;;
-        "--variants")
-            # TODO: List variants if projects is already specified, otherwise empty completion list.
-            ;;
-        "--description")
-            # Do *not* provide completion for description
-            ;;
-        *)
-            case "$cur" in
-                *)
-                    options=(
-                        "--include-modules"
-                        "--project"
-                        "--finalize"
-                        "--variants"
-                        "--param"
-                        "--browse"
-                        "--sync_variants"
-                        "--sync_tasks"
-                        "--sync_statuses"
-                        "--sync_timeout"
-                        "--large"
-                        "--skip_confirm"
-                        "--ref"
-                        "--uncommitted"
-                        "--repeat"
-                        "--repeat-failed"
-                        "--repeat-patch"
-                        "--tasks"
-                        "--alias"
-                        "--description"
-                        "--auto-description"
-                        "--verbose"
-                        "--trigger-alias"
-                        "--path"
-                        "--regex_variants"
-                        "--regex_tasks"
-                        "--preserve-commits")
-                ;;
-        esac
+  if [[ "$COMP_CWORD" -eq 1 ]]; then
+    # shellcheck disable=SC2207
+    COMPREPLY=($(compgen -W "${commands[*]}" -- "$cur"))
+  else
+    case "$command" in
+    buildlogger)
+      options=("fetch" "--task_id" "--execution")
+      ;;
+    patch) _comp_evg_patch ;;
+    patch-set-module) _comp_evg_module ;;
+    fetch) _comp_evg_fetch ;;
     esac
 
+    # Assuming no command/sub-command/options will be used more than once in
+    # the command line, delete the ones have already entered from the
+    # completion list.
+    for each in "${COMP_WORDS[@]}"; do
+      for i in "${!options[@]}"; do
+        if [[ "$each" == "${options[i]}" ]]; then
+          unset "options[i]"
+        fi
+      done
+    done
+
+    # shellcheck disable=SC2207
+    COMPREPLY=($(compgen -W "${options[*]}" -- "$cur"))
+  fi
 }
 
-function _comp_evg_module () {
-    case "$prev" in
-        "--patch"|"-i")
-            options=$(evergreen list-patches -n 30 |
-                          awk -v RS='' -v FS='( : |\n)' '{print $2" | "$4" | "$6" | "$8}' | \
-                              grep -v "pull request" | fzf | cut -d' ' -f 1)
-            ;;
-        "--module"|"-m")
-            options=$(basename "$(git remote get-url origin)" ".git")
-            ;;
-        *)
-            case "$cur" in
-                *)
-                    options=(
-                        "--patch"
-                        "--module"
-                        )
-                ;;
-        esac
+function _comp_evg_patch() {
 
-        ;;
+  case "$prev" in
+  "--project")
+    options=$(evergreen list --projects | fzf | awk '{print $1}')
+    ;;
+  "--variants")
+    # TODO: List variants if projects is already specified, otherwise empty completion list.
+    ;;
+  "--description")
+    # Do *not* provide completion for description
+    ;;
+  *)
+    case "$cur" in
+    *)
+      options=(
+        "--include-modules"
+        "--project"
+        "--finalize"
+        "--variants"
+        "--param"
+        "--browse"
+        "--sync_variants"
+        "--sync_tasks"
+        "--sync_statuses"
+        "--sync_timeout"
+        "--large"
+        "--skip_confirm"
+        "--ref"
+        "--uncommitted"
+        "--repeat"
+        "--repeat-failed"
+        "--repeat-patch"
+        "--tasks"
+        "--alias"
+        "--description"
+        "--auto-description"
+        "--verbose"
+        "--trigger-alias"
+        "--path"
+        "--regex_variants"
+        "--regex_tasks"
+        "--preserve-commits")
+      ;;
     esac
+    ;;
+  esac
+
 }
 
-function _comp_evg_fetch () {
-    case "$prev" in
-        --dir|-d)
-        # Do not provide completion.
-        ;;
-        *)
-          case "$cur" in
-              *)
-                  options=(
-                      "--dir"
-                      "--task"
-                      "--token"
-                      "--source"
-                      "--artifacts"
-                      "--shallow"
-                      "--patch"
-                  );;
-
-          esac
+function _comp_evg_module() {
+  case "$prev" in
+  "--patch" | "-i")
+    options=$(evergreen list-patches -n 30 |
+      awk -v RS='' -v FS='( : |\n)' '{print $2" | "$4" | "$6" | "$8}' |
+      grep -v "pull request" | fzf | cut -d' ' -f 1)
+    ;;
+  "--module" | "-m")
+    options=$(basename "$(git remote get-url origin)" ".git")
+    ;;
+  *)
+    case "$cur" in
+    *)
+      options=(
+        "--patch"
+        "--module"
+      )
+      ;;
     esac
+
+    ;;
+  esac
+}
+
+function _comp_evg_fetch() {
+  case "$prev" in
+  --dir | -d)
+    # Do not provide completion.
+    ;;
+  *)
+    case "$cur" in
+    *)
+      options=(
+        "--dir"
+        "--task"
+        "--token"
+        "--source"
+        "--artifacts"
+        "--shallow"
+        "--patch"
+      )
+      ;;
+
+    esac
+    ;;
+  esac
 
 }
 
